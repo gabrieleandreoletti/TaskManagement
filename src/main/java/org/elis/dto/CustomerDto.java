@@ -11,6 +11,5 @@ public class CustomerDto {
 	private long id;
 
 	private String username;
-	@JsonIgnore
-	private List<TaskDto> tasks;
+	
 }

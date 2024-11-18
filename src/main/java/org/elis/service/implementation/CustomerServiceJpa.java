@@ -5,6 +5,7 @@ import java.util.List;
 import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
 import org.elis.mapper.CustomerMapper;
+import org.elis.mapper.TaskMapper;
 import org.elis.repository.CustomerRepositoryJpa;
 import org.elis.service.definition.CustomerService;
 import org.elis.utilities.JWTUtilities;
@@ -20,6 +21,9 @@ public class CustomerServiceJpa implements CustomerService{
 	
 	@Autowired
 	private final CustomerMapper customerMapper;
+	
+	@Autowired
+	private final TaskMapper taskMapper;
 	@Autowired
 	private final CustomerRepositoryJpa repository;
 	
@@ -31,7 +35,6 @@ public class CustomerServiceJpa implements CustomerService{
 
 	@Override
 	public void insert(CustomerDto customer) {
-		// TODO Auto-generated method stub
 		
 	}
 
