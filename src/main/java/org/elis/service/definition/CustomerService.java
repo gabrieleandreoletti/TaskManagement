@@ -4,11 +4,14 @@ import java.util.List;
 
 import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
+import org.elis.dto.RegistrationCustomerDto;
+import org.elis.exception.CheckFieldException;
+import org.elis.exception.EntityIsPresentException;
 import org.elis.model.Customer;
 
 public interface CustomerService {
 	
-	void insert(CustomerDto customer);
+	void insert(RegistrationCustomerDto customer) throws EntityIsPresentException, CheckFieldException;
 
 	void delete(long id);
 
