@@ -6,8 +6,11 @@ import java.util.Optional;
 import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
 import org.elis.dto.RegistrationCustomerDto;
+import org.elis.dto.TaskDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
+import org.elis.exception.EntityNotFoundException;
+import org.elis.exception.PasswordNotCorrectException;
 import org.elis.mapper.CustomerMapper;
 import org.elis.mapper.TaskMapper;
 import org.elis.model.Customer;
@@ -46,7 +49,7 @@ public class CustomerServiceJpa implements CustomerService {
 			throw new EntityIsPresentException();
 		} else if (customer.getUsername().isBlank() || customer.getPassword().isBlank()
 				|| customer.getUsername() == null || customer.getPassword() == null) {
-					throw new CheckFieldException();
+			throw new CheckFieldException();
 		} else {
 			String psw_cifrata = passwordEncoder.encode(customer.getPassword());
 			Customer c = customerMapper.toCustomer(customer);
@@ -63,8 +66,22 @@ public class CustomerServiceJpa implements CustomerService {
 	}
 
 	@Override
-	public void login(LoginCustomerDto customer) {
-		// TODO Auto-generated method stub
+	public String login(LoginCustomerDto customer)
+			throws EntityNotFoundException, CheckFieldException, PasswordNotCorrectException {
+		Optional<Customer> cOptional = repository.findCustomerByUsername(customer.getUsername());
+		if (!cOptional.isPresent()) {
+			throw new EntityNotFoundException();
+		} else if (customer.getUsername().length() <= 2 || customer.getPassword().length() <= 2) {
+			throw new CheckFieldException();
+		} else {
+			Customer user = cOptional.get();
+			if (passwordEncoder.matches(customer.getPassword(), user.getPassword())) {
+				return jwtUtilities.generateToken(user);
+			}else {
+				throw new PasswordNotCorrectException();
+			}
+
+		}
 
 	}
 
@@ -91,5 +108,22 @@ public class CustomerServiceJpa implements CustomerService {
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public CustomerDto selectByUsername(String username) throws EntityNotFoundException, CheckFieldException {
+		if(username.length()>2) {
+			Optional<Customer> cOpt = repository.findCustomerByUsername(username);
+			if(cOpt.isPresent()) {
+				Customer c = cOpt.get();
+				return customerMapper.toCustomerDto(c);
+			}else {
+				throw new EntityNotFoundException();
+			}
+		}else {
+			throw new CheckFieldException();
+		}
+		
+	}
+
 
 }

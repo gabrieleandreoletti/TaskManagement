@@ -9,19 +9,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
-public class Customer  implements UserDetails{
+public class Customer implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +35,14 @@ public class Customer  implements UserDetails{
 	@Column(nullable = false)
 	private String password;
 	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
 	private Role ruolo;
 	@ManyToMany
-	@JoinTable(name = "customer_task", 
-	joinColumns = @JoinColumn(name = "id_customer"), 
-	inverseJoinColumns = @JoinColumn(name = "id_task"))
-	private List<Task> tasks;
+	@JoinTable(name = "customer_activeTasks", joinColumns = @JoinColumn(name = "id_customer"), inverseJoinColumns = @JoinColumn(name = "id_task"))
+	private List<Task> activeTasks;
+
+	@OneToMany(mappedBy = "autore")
+	private List<Task> createdTask;
 
 	@ManyToMany
 	@JoinTable(name = "customer_team", joinColumns = @JoinColumn(name = "id_customer"), inverseJoinColumns = @JoinColumn(name = "id_team"))

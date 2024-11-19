@@ -1,10 +1,17 @@
 package org.elis.service.implementation;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.elis.dto.CustomerDto;
 import org.elis.dto.TaskDto;
+import org.elis.exception.CheckFieldException;
+import org.elis.exception.EntityIsPresentException;
 import org.elis.mapper.TaskMapper;
+import org.elis.model.Customer;
+import org.elis.model.Role;
+import org.elis.model.State;
+import org.elis.model.Task;
 import org.elis.repository.TaskRepositoryJpa;
 import org.elis.service.definition.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +29,14 @@ public class TaskServiceJpa implements TaskService {
 	private final TaskMapper mapper;
 
 	@Override
-	public void insert(TaskDto task) {
-		// TODO Auto-generated method stub
+	public void insert(TaskDto task) throws CheckFieldException {
+		if (task.getTitolo().isBlank() || task.getTitolo() == null) {
+			throw new CheckFieldException();
+		} else {
+			Task t = mapper.toTask(task);
+			t.setStato(State.InAttesa);
+			repository.save(t);
+		}
 
 	}
 

@@ -17,7 +17,7 @@ import io.jsonwebtoken.security.SignatureException;
 
 @Component
 public class JWTUtilities {
-	private static final String KEY = "Jiabcnwjewkcioamcomefinwiufbenwofmcoicnwpamwne";
+	private static final String KEY = "JiabcnwjewkcioamcomefinwiufbenwofmcoicnwpamwneIUBSEWNFLMIefjbsvbsdcjnsldcnjbiwbfkjbsucsbi";
 
 	private SecretKey getSignatureKey() {
 		return Keys.hmacShaKeyFor(KEY.getBytes());
