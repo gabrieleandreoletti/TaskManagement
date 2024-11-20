@@ -7,10 +7,13 @@ import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
 import org.elis.dto.RegistrationCustomerDto;
 import org.elis.dto.TaskDto;
+import org.elis.dto.UpdatePasswordDto;
+import org.elis.dto.UpdateUsernameDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
 import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.PasswordNotCorrectException;
+import org.elis.exception.UsingOldPswException;
 import org.elis.mapper.CustomerMapper;
 import org.elis.mapper.TaskMapper;
 import org.elis.model.Customer;
@@ -61,7 +64,13 @@ public class CustomerServiceJpa implements CustomerService {
 
 	@Override
 	public void delete(long id) {
-		// TODO Auto-generated method stub
+		Optional<Customer> cOpt = repository.findById(id);
+		if(cOpt.isPresent()) {
+			Customer c = cOpt.get();
+			repository.delete(c);
+		}else {
+			throw new EntityNotFoundException();
+		}
 
 	}
 
@@ -77,18 +86,10 @@ public class CustomerServiceJpa implements CustomerService {
 			Customer user = cOptional.get();
 			if (passwordEncoder.matches(customer.getPassword(), user.getPassword())) {
 				return jwtUtilities.generateToken(user);
-			}else {
+			} else {
 				throw new PasswordNotCorrectException();
 			}
-
 		}
-
-	}
-
-	@Override
-	public CustomerDto selectByID(long id) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -98,32 +99,87 @@ public class CustomerServiceJpa implements CustomerService {
 	}
 
 	@Override
-	public void updateUsername(CustomerDto customer, String username) {
-		// TODO Auto-generated method stub
+	public void updateUsername(LoginCustomerDto customer, UpdateUsernameDto username)
+			throws CheckFieldException, EntityNotFoundException, EntityIsPresentException {
+		if (username.getUsername() != null && !username.getUsername().isBlank() && username.getUsername().length() < 12
+				&& username.getUsername().length() > 2) {
+			Optional<Customer> cOpt = repository.findById(customer.getId());
+			if (cOpt.isPresent()) {
+				Optional<Customer> cOpt2 = repository.findCustomerByUsername(username.getUsername());
+				if (!cOpt2.isPresent()) {
+					Customer c = cOpt.get();
+					c.setUsername(username.getUsername());
+					repository.save(c);
+				} else {
+					throw new EntityIsPresentException();
+				}
+			} else {
+				throw new EntityNotFoundException();
+			}
+		} else {
+			throw new CheckFieldException();
+		}
 
 	}
 
 	@Override
-	public void updatePassword(CustomerDto customer, String password) {
-		// TODO Auto-generated method stub
+	public void updatePassword(CustomerDto customer, UpdatePasswordDto pswDto)
+			throws UsingOldPswException, PasswordNotCorrectException, EntityNotFoundException, CheckFieldException {
+		if (pswDto.getPassword() != null && !pswDto.getPassword().isBlank() && pswDto.getPassword().length() > 3
+				&& pswDto.getPassword().length() < 13 && pswDto.getConfermaPassword() != null
+				&& !pswDto.getConfermaPassword().isBlank() && pswDto.getConfermaPassword().length() > 3
+				&& pswDto.getConfermaPassword().length() < 13) {
+			Optional<Customer> cOpt = repository.findById(customer.getId());
+			if (cOpt.isPresent()) {
+				Customer c = cOpt.get();
+				if (pswDto.getPassword().equals(pswDto.getConfermaPassword())) {
+					if (!passwordEncoder.matches(pswDto.getPassword(), c.getPassword())) {
+						c.setPassword(passwordEncoder.encode(pswDto.getPassword()));
+						repository.save(c);
+					} else {
+						throw new UsingOldPswException();
+					}
+				} else {
+					throw new PasswordNotCorrectException();
+				}
+			} else {
+				throw new EntityNotFoundException();
+			}
 
+		} else {
+			throw new CheckFieldException();
+		}
 	}
 
 	@Override
 	public CustomerDto selectByUsername(String username) throws EntityNotFoundException, CheckFieldException {
-		if(username.length()>2) {
+		if (username.length() > 2) {
 			Optional<Customer> cOpt = repository.findCustomerByUsername(username);
-			if(cOpt.isPresent()) {
+			if (cOpt.isPresent()) {
 				Customer c = cOpt.get();
 				return customerMapper.toCustomerDto(c);
-			}else {
+			} else {
 				throw new EntityNotFoundException();
 			}
-		}else {
+		} else {
 			throw new CheckFieldException();
 		}
-		
 	}
 
+	@Override
+	public LoginCustomerDto selectLogCustomerByUsername(String username)
+			throws EntityNotFoundException, CheckFieldException {
+		if (username.length() > 2) {
+			Optional<Customer> cOpt = repository.findCustomerByUsername(username);
+			if (cOpt.isPresent()) {
+				Customer c = cOpt.get();
+				return customerMapper.toLoginCustomerDto(c);
+			} else {
+				throw new EntityNotFoundException();
+			}
+		} else {
+			throw new CheckFieldException();
+		}
+	}
 
 }

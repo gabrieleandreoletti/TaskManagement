@@ -18,7 +18,7 @@ public class TaskDto {
 	@JsonIgnore
 	private CustomerDto creator;
 	@JsonIgnore
-	private List<CustomerDto> customers;
+	private List<CustomerDto> activeCustomers;
 	@JsonIgnore
 	private State stato;
 }

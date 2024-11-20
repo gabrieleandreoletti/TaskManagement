@@ -22,4 +22,8 @@ public interface CustomerMapper {
 
 	public RegistrationCustomerDto toRegistrationCustomerDto(Customer c);
 
+	public LoginCustomerDto toCustomerDto(CustomerDto c);
+
+	public CustomerDto toLoginCustomerDto(LoginCustomerDto c);
+
 }

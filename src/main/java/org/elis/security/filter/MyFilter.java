@@ -18,20 +18,22 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@Data
 public class MyFilter extends OncePerRequestFilter {
 
 	private final HandlerExceptionResolver resolver;
 	private final UserDetailsService service;
 	private final JWTUtilities utilities;
 
-	public MyFilter(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
-			@Lazy UserDetailsService service, JWTUtilities utilities) {
-
+	public MyFilter(JWTUtilities jwtUtilities, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
+			@Lazy UserDetailsService userDetailsService) {
+		this.utilities = jwtUtilities;
 		this.resolver = resolver;
-		this.service = service;
-		this.utilities = utilities;
+		this.service = userDetailsService;
 	}
 
 	@Override
@@ -40,7 +42,7 @@ public class MyFilter extends OncePerRequestFilter {
 
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		String authorizationHeader = request.getHeader("Authorization");
-		if (authorizationHeader == null || authorizationHeader.startsWith("Bearer ")
+		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")
 				|| securityContext.getAuthentication() != null) {
 			filterChain.doFilter(request, response);
 			return;

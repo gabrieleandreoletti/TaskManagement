@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class CustomerDto {
 	private long id;
-
+	private List<TaskDto> task_create;
 	private String username;
-	
+
 }

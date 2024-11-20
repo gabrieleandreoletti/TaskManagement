@@ -16,8 +16,6 @@ private final CustomerRepositoryJpa customerRepository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		
 		return customerRepository.findCustomerByUsername(username).orElseThrow(()-> new UsernameNotFoundException("Username: " + username + " non trovato"));
-				
 	}
 }

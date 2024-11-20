@@ -7,11 +7,14 @@ import org.elis.dto.CustomerDto;
 import org.elis.dto.TaskDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
+import org.elis.exception.EntityNotFoundException;
+import org.elis.mapper.CustomerMapper;
 import org.elis.mapper.TaskMapper;
 import org.elis.model.Customer;
 import org.elis.model.Role;
 import org.elis.model.State;
 import org.elis.model.Task;
+import org.elis.repository.CustomerRepositoryJpa;
 import org.elis.repository.TaskRepositoryJpa;
 import org.elis.service.definition.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +31,25 @@ public class TaskServiceJpa implements TaskService {
 	@Autowired
 	private final TaskMapper mapper;
 
+	@Autowired
+	private final CustomerRepositoryJpa customerRepository;
+
 	@Override
-	public void insert(TaskDto task) throws CheckFieldException {
+	public void insert(TaskDto task) throws CheckFieldException, EntityNotFoundException {
 		if (task.getTitolo().isBlank() || task.getTitolo() == null) {
 			throw new CheckFieldException();
 		} else {
 			Task t = mapper.toTask(task);
 			t.setStato(State.InAttesa);
-			repository.save(t);
+			Optional<Customer> cOpt = customerRepository.findCustomerByUsername(task.getCreator().getUsername());
+			if (cOpt.isPresent()) {
+				Customer c = cOpt.get();
+				t.setAutore(c);
+				repository.save(t);
+			}else {
+				throw new EntityNotFoundException();
+			}
+
 		}
 
 	}

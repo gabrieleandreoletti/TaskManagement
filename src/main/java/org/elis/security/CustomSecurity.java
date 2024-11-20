@@ -28,12 +28,16 @@ public class CustomSecurity {
 
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+
+		httpSecurity.authorizeHttpRequests(t -> {
+			t.requestMatchers("/base/**").hasAnyRole(Role.ADMIN.toString(), Role.BASE.toString());
+			t.requestMatchers("/admin/**").hasRole(Role.ADMIN.toString());
+			t.requestMatchers("all/**").permitAll();
+		});
+
 		httpSecurity.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 		httpSecurity.csrf(t -> t.disable());
 		httpSecurity.sessionManagement(t -> t.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		httpSecurity.authorizeHttpRequests(t -> t.requestMatchers("/all/**").permitAll().requestMatchers("base/**")
-				.hasAnyRole(Role.BASE.toString(), Role.ADMIN.toString()).requestMatchers("/admin/**")
-				.hasRole(Role.ADMIN.toString()).anyRequest().permitAll());
 		return httpSecurity.build();
 
 	}
