@@ -2,6 +2,7 @@ package org.elis.controller;
 
 import java.util.List;
 
+import org.elis.dto.ActiveTaskDto;
 import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
 import org.elis.dto.RegistrationCustomerDto;
@@ -12,6 +13,7 @@ import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
 import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.NoUserLoggedException;
+import org.elis.exception.NotAllowedException;
 import org.elis.exception.PasswordNotCorrectException;
 import org.elis.exception.UsingOldPswException;
 import org.elis.mapper.CustomerMapper;
@@ -59,23 +61,23 @@ public class UserController {
 
 	@PutMapping("/base/updateUsername")
 	public ResponseEntity<LoginCustomerDto> updateUsername(@Valid @RequestBody UpdateUsernameDto usernameDto,
-	        UsernamePasswordAuthenticationToken u)
-	        throws EntityNotFoundException, CheckFieldException, NoUserLoggedException, PasswordNotCorrectException, EntityIsPresentException {
-	    String currentUsername = (String) u.getPrincipal();
-	    LoginCustomerDto user = customerService.selectLogCustomerByUsername(currentUsername);
+			UsernamePasswordAuthenticationToken u) throws EntityNotFoundException, CheckFieldException,
+			NoUserLoggedException, PasswordNotCorrectException, EntityIsPresentException {
+		String currentUsername = (String) u.getPrincipal();
+		LoginCustomerDto user = customerService.selectLogCustomerByUsername(currentUsername);
 
-	    if (user != null) {
-	        customerService.updateUsername(user, usernameDto);
-	        return ResponseEntity.ok().body(user);
-	    } else {
-	        throw new NoUserLoggedException();
-	    }
+		if (user != null) {
+			customerService.updateUsername(user, usernameDto);
+			return ResponseEntity.ok().body(user);
+		} else {
+			throw new NoUserLoggedException();
+		}
 	}
 
 	@PutMapping("/base/updatePassword")
 	public ResponseEntity<CustomerDto> updatePassword(@Valid @RequestBody UpdatePasswordDto password,
-			UsernamePasswordAuthenticationToken u)
-			throws CheckFieldException, EntityNotFoundException, PasswordNotCorrectException, NoUserLoggedException, UsingOldPswException {
+			UsernamePasswordAuthenticationToken u) throws CheckFieldException, EntityNotFoundException,
+			PasswordNotCorrectException, NoUserLoggedException, UsingOldPswException {
 		String username = (String) u.getPrincipal();
 		CustomerDto user = customerService.selectByUsername(username);
 		if (user != null) {
@@ -97,6 +99,20 @@ public class UserController {
 			json.setActiveCustomers(List.of(creator));
 			taskService.insert(json);
 			return ResponseEntity.ok().body(json);
+		} else {
+			throw new NoUserLoggedException();
+		}
+	}
+
+	@PutMapping("base/attivaTask")
+	public ResponseEntity<TaskDto> attivaTask(@Valid @RequestBody ActiveTaskDto json, UsernamePasswordAuthenticationToken u)
+			throws EntityNotFoundException, CheckFieldException, NotAllowedException, NoUserLoggedException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if (cust != null) {
+			taskService.attivaTask(json, cust);
+			TaskDto tDto = taskService.getTaskById(json.getId());
+			return ResponseEntity.ok().body(tDto);
 		} else {
 			throw new NoUserLoggedException();
 		}

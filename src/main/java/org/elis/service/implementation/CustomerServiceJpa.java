@@ -63,7 +63,7 @@ public class CustomerServiceJpa implements CustomerService {
 	}
 
 	@Override
-	public void delete(long id) {
+	public void delete(long id) throws EntityNotFoundException {
 		Optional<Customer> cOpt = repository.findById(id);
 		if(cOpt.isPresent()) {
 			Customer c = cOpt.get();

@@ -8,6 +8,7 @@ import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
 import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.NoUserLoggedException;
+import org.elis.exception.NotAllowedException;
 import org.elis.exception.PasswordNotCorrectException;
 import org.elis.exception.UsingOldPswException;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class ErrorHandler {
 		responseBody.put("path", request.getDescription(false));
 		return ResponseEntity.badRequest().body(responseBody);
 	}
-	
+
 	@ExceptionHandler(NoUserLoggedException.class)
 	public ResponseEntity<Map<String, String>> NoUserLoggedHandler(NoUserLoggedException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
@@ -59,7 +60,17 @@ public class ErrorHandler {
 		responseBody.put("path", request.getDescription(false));
 		return ResponseEntity.badRequest().body(responseBody);
 	}
-	
+
+	@ExceptionHandler(NotAllowedException.class)
+	public ResponseEntity<Map<String, String>> NotAllowedHandler(NotAllowedException ex, WebRequest request) {
+		Map<String, String> responseBody = new HashMap<>();
+		responseBody.put("timestamp", LocalDateTime.now().toString());
+		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
+		responseBody.put("errorMessage", ex.getMessage());
+		responseBody.put("path", request.getDescription(false));
+		return ResponseEntity.badRequest().body(responseBody);
+	}
+
 	@ExceptionHandler(UsingOldPswException.class)
 	public ResponseEntity<Map<String, String>> UsingOldPswHandler(UsingOldPswException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
