@@ -7,6 +7,7 @@ import org.elis.dto.CustomerDto;
 import org.elis.dto.LoginCustomerDto;
 import org.elis.dto.RegistrationCustomerDto;
 import org.elis.dto.TaskDto;
+import org.elis.dto.TeamDto;
 import org.elis.dto.UpdatePasswordDto;
 import org.elis.dto.UpdateUsernameDto;
 import org.elis.exception.CheckFieldException;
@@ -15,27 +16,28 @@ import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.NoUserLoggedException;
 import org.elis.exception.NotAllowedException;
 import org.elis.exception.PasswordNotCorrectException;
+import org.elis.exception.TaskNonAttivaException;
 import org.elis.exception.UsingOldPswException;
-import org.elis.mapper.CustomerMapper;
-import org.elis.model.Customer;
 import org.elis.service.definition.CustomerService;
 import org.elis.service.definition.TaskService;
+import org.elis.service.definition.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User Api", description = "operazioni effettuabili dall'utente di base")
 public class UserController {
 
 	@Autowired
@@ -44,7 +46,13 @@ public class UserController {
 	@Autowired
 	private final TaskService taskService;
 
+	@Autowired
+	private final TeamService teamService;
+
+	// CHIAMATE METODI PER UTENTE BASE SENZA AUTENTICAZIONE
+
 	@PostMapping("all/registrazione")
+	@Operation(summary = "registrazione utente", description = "l'utente invia un username ed una password e se supera tutti i controlli verrà inserito nel database")
 	public ResponseEntity<RegistrationCustomerDto> registrazione(@Valid @RequestBody RegistrationCustomerDto json)
 			throws EntityIsPresentException, CheckFieldException {
 		customerService.insert(json);
@@ -52,6 +60,7 @@ public class UserController {
 	}
 
 	@GetMapping("all/login")
+	@Operation(summary = "login utente", description = "l'utente invia un username ed una password e se supera tutti i controlli verrà autenticato e gli verrà assegnato un token")
 	public ResponseEntity<LoginCustomerDto> login(@Valid @RequestBody LoginCustomerDto json)
 			throws EntityIsPresentException, CheckFieldException, EntityNotFoundException, PasswordNotCorrectException {
 		String token = customerService.login(json);
@@ -59,7 +68,20 @@ public class UserController {
 
 	}
 
+	// CHIAMATE ADMIN
+
+	@PostMapping("all/registrazioneAdm")
+	@Operation(summary = "registrazione admin", description = "l'admin invia un username ed una password e se supera tutti i controlli verrà inserito nel database")
+	public ResponseEntity<RegistrationCustomerDto> registrazioneAdm(@Valid @RequestBody RegistrationCustomerDto json)
+			throws EntityIsPresentException, CheckFieldException {
+		customerService.insertADMIN(json);
+		return ResponseEntity.ok().body(json);
+	}
+
+	// CHIAMATE METODI UTENTE BASE CHE HA EFFETTUATO L'ACCESSO
+
 	@PutMapping("/base/updateUsername")
+	@Operation(summary = "modifica username utente", description = "l'utente invia un username e dopo i controlli viene modificato")
 	public ResponseEntity<LoginCustomerDto> updateUsername(@Valid @RequestBody UpdateUsernameDto usernameDto,
 			UsernamePasswordAuthenticationToken u) throws EntityNotFoundException, CheckFieldException,
 			NoUserLoggedException, PasswordNotCorrectException, EntityIsPresentException {
@@ -75,6 +97,8 @@ public class UserController {
 	}
 
 	@PutMapping("/base/updatePassword")
+	@Operation(summary = "modifica password utente", description = "l'utente invia un username e dopo i controlli viene prima criptata e poi modificata")
+
 	public ResponseEntity<CustomerDto> updatePassword(@Valid @RequestBody UpdatePasswordDto password,
 			UsernamePasswordAuthenticationToken u) throws CheckFieldException, EntityNotFoundException,
 			PasswordNotCorrectException, NoUserLoggedException, UsingOldPswException {
@@ -89,7 +113,11 @@ public class UserController {
 
 	}
 
+	// CHIAMATE METODI UTENTE BASE PER TASK
+
 	@PostMapping("base/creaTask")
+	@Operation(summary = "crea task", description = "l'utente crea una task e ed essa viene assegnata solo a l'utente che la creata")
+
 	public ResponseEntity<TaskDto> creaTask(@Valid @RequestBody TaskDto json, UsernamePasswordAuthenticationToken u)
 			throws CheckFieldException, EntityNotFoundException, NoUserLoggedException {
 		String username = (String) u.getPrincipal();
@@ -105,7 +133,8 @@ public class UserController {
 	}
 
 	@PutMapping("base/attivaTask")
-	public ResponseEntity<TaskDto> attivaTask(@Valid @RequestBody ActiveTaskDto json, UsernamePasswordAuthenticationToken u)
+	public ResponseEntity<TaskDto> attivaTask(@Valid @RequestBody ActiveTaskDto json,
+			UsernamePasswordAuthenticationToken u)
 			throws EntityNotFoundException, CheckFieldException, NotAllowedException, NoUserLoggedException {
 		String username = (String) u.getPrincipal();
 		CustomerDto cust = customerService.selectByUsername(username);
@@ -113,6 +142,54 @@ public class UserController {
 			taskService.attivaTask(json, cust);
 			TaskDto tDto = taskService.getTaskById(json.getId());
 			return ResponseEntity.ok().body(tDto);
+		} else {
+			throw new NoUserLoggedException();
+		}
+	}
+
+	@PutMapping("base/concludiTask")
+	public ResponseEntity<TaskDto> concludiTask(@Valid @RequestBody ActiveTaskDto json,
+			UsernamePasswordAuthenticationToken u) throws EntityNotFoundException, CheckFieldException,
+			NotAllowedException, NoUserLoggedException, TaskNonAttivaException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if (cust != null) {
+			taskService.concludiTask(json, cust);
+			TaskDto tDto = taskService.getTaskById(json.getId());
+			return ResponseEntity.ok().body(tDto);
+		} else {
+			throw new NoUserLoggedException();
+		}
+	}
+
+	@PutMapping("base/modificaTask")
+	public ResponseEntity<TaskDto> modificaTask(@Valid @RequestBody TaskDto jsonDto,
+			UsernamePasswordAuthenticationToken u)
+			throws EntityNotFoundException, CheckFieldException, NoUserLoggedException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if (cust != null) {
+			taskService.modificaTask(jsonDto);
+			TaskDto tDto = taskService.getTaskById(jsonDto.getId());
+			return ResponseEntity.ok().body(tDto);
+		} else {
+			throw new NoUserLoggedException();
+		}
+	}
+
+	// CHIAMATE METODI UTENTE BASE PER TEAM
+
+	// CHIAMATE METODI ADMIN PER TEAM
+
+	@PostMapping("admin/creaTeam")
+	public ResponseEntity<TeamDto> creaTeam(@Valid @RequestBody TeamDto json, UsernamePasswordAuthenticationToken u)
+			throws EntityNotFoundException, CheckFieldException, EntityIsPresentException, NotAllowedException,
+			NoUserLoggedException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if (cust != null) {
+			teamService.insert(json, cust);
+			return ResponseEntity.ok().body(json);
 		} else {
 			throw new NoUserLoggedException();
 		}

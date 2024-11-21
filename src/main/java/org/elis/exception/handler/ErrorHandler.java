@@ -10,6 +10,7 @@ import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.NoUserLoggedException;
 import org.elis.exception.NotAllowedException;
 import org.elis.exception.PasswordNotCorrectException;
+import org.elis.exception.TaskNonAttivaException;
 import org.elis.exception.UsingOldPswException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +31,18 @@ public class ErrorHandler {
 		return ResponseEntity.badRequest().body(responseBody);
 	}
 
+	@ExceptionHandler(TaskNonAttivaException.class)
+	public ResponseEntity<Map<String, String>> taskNonAttivaHandler(TaskNonAttivaException ex, WebRequest request) {
+		Map<String, String> responseBody = new HashMap<>();
+		responseBody.put("timestamp", LocalDateTime.now().toString());
+		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
+		responseBody.put("errorMessage", ex.getMessage());
+		responseBody.put("path", request.getDescription(false));
+		return ResponseEntity.badRequest().body(responseBody);
+	}
+
 	@ExceptionHandler(NoUserLoggedException.class)
-	public ResponseEntity<Map<String, String>> NoUserLoggedHandler(NoUserLoggedException ex, WebRequest request) {
+	public ResponseEntity<Map<String, String>> noUserLoggedHandler(NoUserLoggedException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
 		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
@@ -41,7 +52,7 @@ public class ErrorHandler {
 	}
 
 	@ExceptionHandler(PasswordNotCorrectException.class)
-	public ResponseEntity<Map<String, String>> PasswordNotCorrectHandler(PasswordNotCorrectException ex,
+	public ResponseEntity<Map<String, String>> passwordNotCorrectHandler(PasswordNotCorrectException ex,
 			WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
@@ -62,7 +73,7 @@ public class ErrorHandler {
 	}
 
 	@ExceptionHandler(NotAllowedException.class)
-	public ResponseEntity<Map<String, String>> NotAllowedHandler(NotAllowedException ex, WebRequest request) {
+	public ResponseEntity<Map<String, String>> notAllowedHandler(NotAllowedException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
 		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
@@ -72,7 +83,7 @@ public class ErrorHandler {
 	}
 
 	@ExceptionHandler(UsingOldPswException.class)
-	public ResponseEntity<Map<String, String>> UsingOldPswHandler(UsingOldPswException ex, WebRequest request) {
+	public ResponseEntity<Map<String, String>> usingOldPswHandler(UsingOldPswException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
 		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
@@ -82,7 +93,7 @@ public class ErrorHandler {
 	}
 
 	@ExceptionHandler(EntityNotFoundException.class)
-	public ResponseEntity<Map<String, String>> EntityNotFoundHandler(EntityNotFoundException ex, WebRequest request) {
+	public ResponseEntity<Map<String, String>> entityNotFoundHandler(EntityNotFoundException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
 		responseBody.put("error", HttpStatus.BAD_REQUEST.name());

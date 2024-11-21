@@ -65,13 +65,8 @@ public class CustomerServiceJpa implements CustomerService {
 	@Override
 	public void delete(long id) throws EntityNotFoundException {
 		Optional<Customer> cOpt = repository.findById(id);
-		if(cOpt.isPresent()) {
-			Customer c = cOpt.get();
-			repository.delete(c);
-		}else {
-			throw new EntityNotFoundException();
-		}
-
+		Customer c = cOpt.orElseThrow(() -> new EntityNotFoundException());
+		repository.delete(c);
 	}
 
 	@Override
@@ -130,20 +125,16 @@ public class CustomerServiceJpa implements CustomerService {
 				&& !pswDto.getConfermaPassword().isBlank() && pswDto.getConfermaPassword().length() > 3
 				&& pswDto.getConfermaPassword().length() < 13) {
 			Optional<Customer> cOpt = repository.findById(customer.getId());
-			if (cOpt.isPresent()) {
-				Customer c = cOpt.get();
-				if (pswDto.getPassword().equals(pswDto.getConfermaPassword())) {
-					if (!passwordEncoder.matches(pswDto.getPassword(), c.getPassword())) {
-						c.setPassword(passwordEncoder.encode(pswDto.getPassword()));
-						repository.save(c);
-					} else {
-						throw new UsingOldPswException();
-					}
+			Customer c = cOpt.orElseThrow(() -> new EntityNotFoundException());
+			if (pswDto.getPassword().equals(pswDto.getConfermaPassword())) {
+				if (!passwordEncoder.matches(pswDto.getPassword(), c.getPassword())) {
+					c.setPassword(passwordEncoder.encode(pswDto.getPassword()));
+					repository.save(c);
 				} else {
-					throw new PasswordNotCorrectException();
+					throw new UsingOldPswException();
 				}
 			} else {
-				throw new EntityNotFoundException();
+				throw new PasswordNotCorrectException();
 			}
 
 		} else {
@@ -155,12 +146,8 @@ public class CustomerServiceJpa implements CustomerService {
 	public CustomerDto selectByUsername(String username) throws EntityNotFoundException, CheckFieldException {
 		if (username.length() > 2) {
 			Optional<Customer> cOpt = repository.findCustomerByUsername(username);
-			if (cOpt.isPresent()) {
-				Customer c = cOpt.get();
-				return customerMapper.toCustomerDto(c);
-			} else {
-				throw new EntityNotFoundException();
-			}
+			Customer c = cOpt.orElseThrow(() -> new EntityNotFoundException());
+			return customerMapper.toCustomerDto(c);
 		} else {
 			throw new CheckFieldException();
 		}
@@ -171,15 +158,29 @@ public class CustomerServiceJpa implements CustomerService {
 			throws EntityNotFoundException, CheckFieldException {
 		if (username.length() > 2) {
 			Optional<Customer> cOpt = repository.findCustomerByUsername(username);
-			if (cOpt.isPresent()) {
-				Customer c = cOpt.get();
-				return customerMapper.toLoginCustomerDto(c);
-			} else {
-				throw new EntityNotFoundException();
-			}
+			Customer c = cOpt.orElseThrow(() -> new EntityNotFoundException());
+			return customerMapper.toLoginCustomerDto(c);
 		} else {
 			throw new CheckFieldException();
 		}
+	}
+
+	@Override
+	public void insertADMIN(RegistrationCustomerDto customer) throws EntityIsPresentException, CheckFieldException {
+		Optional<Customer> c_Optional = repository.findCustomerByUsername(customer.getUsername());
+		if (c_Optional.isPresent()) {
+			throw new EntityIsPresentException();
+		} else if (customer.getUsername().isBlank() || customer.getPassword().isBlank()
+				|| customer.getUsername() == null || customer.getPassword() == null) {
+			throw new CheckFieldException();
+		} else {
+			String psw_cifrata = passwordEncoder.encode(customer.getPassword());
+			Customer c = customerMapper.toCustomer(customer);
+			c.setPassword(psw_cifrata);
+			c.setRuolo(Role.ADMIN);
+			repository.save(c);
+		}
+
 	}
 
 }

@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 @Entity
@@ -19,6 +20,7 @@ public class Team {
 	private long id;
 	@Column(nullable = false, unique = true)
 	private String nome;
-	@ManyToMany(mappedBy = "teams")
+	@OneToMany(mappedBy = "team")
 	private List<Customer> customers;
+	private Customer leader;
 }

@@ -44,9 +44,9 @@ public class Customer implements UserDetails {
 	@OneToMany(mappedBy = "autore")
 	private List<Task> createdTask;
 
-	@ManyToMany
-	@JoinTable(name = "customer_team", joinColumns = @JoinColumn(name = "id_customer"), inverseJoinColumns = @JoinColumn(name = "id_team"))
-	private List<Team> teams;
+	@ManyToOne
+	@JoinColumn(name = "id_team")
+	private Team team;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

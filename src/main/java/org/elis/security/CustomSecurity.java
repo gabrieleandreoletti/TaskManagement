@@ -30,6 +30,7 @@ public class CustomSecurity {
 	SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 
 		httpSecurity.authorizeHttpRequests(t -> {
+			t.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
 			t.requestMatchers("/base/**").hasAnyRole(Role.ADMIN.toString(), Role.BASE.toString());
 			t.requestMatchers("/admin/**").hasRole(Role.ADMIN.toString());
 			t.requestMatchers("all/**").permitAll();

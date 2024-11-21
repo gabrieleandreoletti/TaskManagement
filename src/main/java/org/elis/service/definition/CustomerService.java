@@ -18,6 +18,8 @@ import org.elis.model.Customer;
 public interface CustomerService {
 	
 	void insert(RegistrationCustomerDto customer) throws EntityIsPresentException, CheckFieldException;
+	
+	void insertADMIN(RegistrationCustomerDto customer) throws EntityIsPresentException, CheckFieldException;
 
 	void delete(long id) throws EntityNotFoundException;
 
