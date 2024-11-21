@@ -29,7 +29,7 @@ public interface CustomerService {
 	
 	LoginCustomerDto selectLogCustomerByUsername(String username) throws EntityNotFoundException, CheckFieldException;
 
-	List<CustomerDto> selectAll();
+	List<CustomerDto> selectAll() throws EntityNotFoundException;
 
 	void updateUsername(LoginCustomerDto user, UpdateUsernameDto username) throws CheckFieldException, EntityNotFoundException, EntityIsPresentException;
 

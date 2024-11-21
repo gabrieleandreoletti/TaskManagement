@@ -1,5 +1,6 @@
 package org.elis.service.implementation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,8 @@ import org.elis.repository.CustomerRepositoryJpa;
 import org.elis.service.definition.CustomerService;
 import org.elis.utilities.JWTUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +49,7 @@ public class CustomerServiceJpa implements CustomerService {
 	private final JWTUtilities jwtUtilities;
 
 	@Override
+	@CacheEvict("customers")
 	public void insert(RegistrationCustomerDto customer) throws EntityIsPresentException, CheckFieldException {
 		Optional<Customer> c_Optional = repository.findCustomerByUsername(customer.getUsername());
 		if (c_Optional.isPresent()) {
@@ -63,6 +67,7 @@ public class CustomerServiceJpa implements CustomerService {
 	}
 
 	@Override
+	@CacheEvict("customers")
 	public void delete(long id) throws EntityNotFoundException {
 		Optional<Customer> cOpt = repository.findById(id);
 		Customer c = cOpt.orElseThrow(() -> new EntityNotFoundException());
@@ -88,12 +93,25 @@ public class CustomerServiceJpa implements CustomerService {
 	}
 
 	@Override
-	public List<CustomerDto> selectAll() {
-		// TODO Auto-generated method stub
-		return null;
+	@Cacheable("customers")
+	public List<CustomerDto> selectAll() throws EntityNotFoundException {
+		List<Customer> utenti = repository.findAll();
+		if (!utenti.isEmpty()) {
+			List<CustomerDto> utentiDto = new ArrayList<>();
+			for (Customer c : utenti) {
+				if (c.getRuolo() == Role.BASE) {
+					CustomerDto cDto = customerMapper.toCustomerDto(c);
+					utentiDto.add(cDto);
+				}
+			}
+			return utentiDto;
+		} else {
+			throw new EntityNotFoundException();
+		}
 	}
 
 	@Override
+	@CacheEvict("customers")
 	public void updateUsername(LoginCustomerDto customer, UpdateUsernameDto username)
 			throws CheckFieldException, EntityNotFoundException, EntityIsPresentException {
 		if (username.getUsername() != null && !username.getUsername().isBlank() && username.getUsername().length() < 12

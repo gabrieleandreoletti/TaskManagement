@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.elis.exception.CheckFieldException;
+import org.elis.exception.EmptyListException;
 import org.elis.exception.EntityIsPresentException;
 import org.elis.exception.EntityNotFoundException;
 import org.elis.exception.NoUserLoggedException;
@@ -23,6 +24,16 @@ public class ErrorHandler {
 
 	@ExceptionHandler(EntityIsPresentException.class)
 	public ResponseEntity<Map<String, String>> entityIsPresentHandler(EntityIsPresentException ex, WebRequest request) {
+		Map<String, String> responseBody = new HashMap<>();
+		responseBody.put("timestamp", LocalDateTime.now().toString());
+		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
+		responseBody.put("errorMessage", ex.getMessage());
+		responseBody.put("path", request.getDescription(false));
+		return ResponseEntity.badRequest().body(responseBody);
+	}
+
+	@ExceptionHandler(EmptyListException.class)
+	public ResponseEntity<Map<String, String>> emptyListHandler(EmptyListException ex, WebRequest request) {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("timestamp", LocalDateTime.now().toString());
 		responseBody.put("error", HttpStatus.BAD_REQUEST.name());
