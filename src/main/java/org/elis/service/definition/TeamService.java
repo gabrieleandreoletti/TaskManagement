@@ -13,8 +13,8 @@ import org.elis.model.Customer;
 public interface TeamService {
 	
 	void insert(TeamDto team,CustomerDto leader) throws EntityIsPresentException, CheckFieldException, EntityNotFoundException, NotAllowedException;
-	void delete(long id);
-	List<TeamDto> selectAll();
-	TeamDto selectByName(String nome);
-	void updateNome(TeamDto team , String nome);
+	void delete(long id) throws EntityNotFoundException;
+	List<TeamDto> selectAll() throws EntityNotFoundException;
+	TeamDto selectByName(String nome) throws EntityNotFoundException;
+	void updateNome(TeamDto team , String nome) throws EntityIsPresentException, EntityNotFoundException;
 }

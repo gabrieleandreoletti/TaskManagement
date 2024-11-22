@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,6 +64,21 @@ public class AdminController {
 		}
 	}
 
+	@DeleteMapping("admin/eliminaTeam")
+	@Operation(summary = "eliminazione di un team", description = "l'admin invia un oggetto dt contentente l'id di un team che dopo i controlli verrà eliminato per sempre")
+	public ResponseEntity<String> eliminaTeam(long id, UsernamePasswordAuthenticationToken u)
+			throws EntityNotFoundException, CheckFieldException, NoUserLoggedException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if(cust!=null) {
+			teamService.delete(id);
+			return ResponseEntity.ok().body("Team con id: " +id + " è stato eliminato");
+		}else {
+			throw new NoUserLoggedException();
+
+		}
+	}
+
 	@GetMapping("admin/showCustomers")
 	@Cacheable("customers")
 	public ResponseEntity<List<CustomerDto>> selectAllCustomers(UsernamePasswordAuthenticationToken u)
@@ -75,6 +91,5 @@ public class AdminController {
 			throw new NoUserLoggedException();
 		}
 	}
-	
-	
+
 }

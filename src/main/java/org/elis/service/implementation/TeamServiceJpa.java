@@ -1,5 +1,6 @@
 package org.elis.service.implementation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +51,7 @@ public class TeamServiceJpa implements TeamService {
 					repository.save(t);
 					c.setTeam(t);
 					customerRepository.save(c);
-					
+
 				} else {
 					throw new NotAllowedException();
 				}
@@ -64,26 +65,46 @@ public class TeamServiceJpa implements TeamService {
 	}
 
 	@Override
-	public void delete(long id) {
-		// TODO Auto-generated method stub
+	public void delete(long id) throws EntityNotFoundException {
+		Optional<Team> optTeam = repository.findById(id);
+		Team t = optTeam.orElseThrow(() -> new EntityNotFoundException());
+		repository.delete(t);
+	}
+
+	@Override
+	public List<TeamDto> selectAll() throws EntityNotFoundException {
+		List<Team> team = repository.findAll();
+		if (!team.isEmpty()) {
+			List<TeamDto> teamDto = new ArrayList<>();
+			for (Team t : team) {
+				teamDto.add(mapper.toTeamDto(t));
+			}
+			return teamDto;
+		} else {
+			throw new EntityNotFoundException();
+		}
+	}
+
+	@Override
+	public TeamDto selectByName(String nome) throws EntityNotFoundException {
+		Optional<Team> optTeam = repository.selectTeamByNome(nome);
+		Team t = optTeam.orElseThrow(() -> new EntityNotFoundException());
+		return mapper.toTeamDto(t);
 
 	}
 
 	@Override
-	public List<TeamDto> selectAll() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public TeamDto selectByName(String nome) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void updateNome(TeamDto team, String nome) {
-		// TODO Auto-generated method stub
+	public void updateNome(TeamDto team, String nome) throws EntityIsPresentException, EntityNotFoundException {
+		if (!nome.isBlank() && nome != null && nome.length() < 12 && nome.length() > 3) {
+			Optional<Team> optTeam = repository.findById(team.getId());
+			Team t = optTeam.orElseThrow(() -> new EntityNotFoundException());
+			if (!repository.selectTeamByNome(nome).isPresent()) {
+				t.setNome(nome);
+				repository.save(t);
+			} else {
+				throw new EntityIsPresentException();
+			}
+		}
 
 	}
 
