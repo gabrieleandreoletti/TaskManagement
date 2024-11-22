@@ -19,6 +19,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -47,6 +48,9 @@ public class Customer implements UserDetails {
 	@ManyToOne
 	@JoinColumn(name = "id_team")
 	private Team team;
+	
+	@OneToOne(mappedBy = "leader")
+	private Team teamLeader;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

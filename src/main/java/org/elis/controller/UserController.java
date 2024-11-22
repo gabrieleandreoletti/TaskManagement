@@ -68,10 +68,10 @@ public class UserController {
 
 	@GetMapping("all/login")
 	@Operation(summary = "login utente", description = "l'utente invia un username ed una password e se supera tutti i controlli verrà autenticato e gli verrà assegnato un token")
-	public ResponseEntity<LoginCustomerDto> login(@Valid @RequestBody LoginCustomerDto json)
+	public ResponseEntity<String> login(@Valid @RequestBody LoginCustomerDto json)
 			throws EntityIsPresentException, CheckFieldException, EntityNotFoundException, PasswordNotCorrectException {
 		String token = customerService.login(json);
-		return ResponseEntity.ok().header("Authorization", token).build();
+		return ResponseEntity.ok().header("Authorization", token).body("Login effettuato");
 
 	}
 
@@ -113,7 +113,7 @@ public class UserController {
 	// CHIAMATE METODI UTENTE BASE PER TASK
 
 	@PostMapping("base/creaTask")
-	@CacheEvict("tasks")
+	@CacheEvict("personalTasks")
 	@Operation(summary = "crea task", description = "l'utente crea una task e ed essa viene assegnata solo a l'utente che la creata")
 	public ResponseEntity<TaskDto> creaTask(@Valid @RequestBody TaskDto json, UsernamePasswordAuthenticationToken u)
 			throws CheckFieldException, EntityNotFoundException, NoUserLoggedException {

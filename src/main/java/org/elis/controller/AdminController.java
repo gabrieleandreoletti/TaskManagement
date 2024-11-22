@@ -75,4 +75,6 @@ public class AdminController {
 			throw new NoUserLoggedException();
 		}
 	}
+	
+	
 }

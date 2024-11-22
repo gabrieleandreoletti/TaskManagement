@@ -43,11 +43,15 @@ public class TeamServiceJpa implements TeamService {
 			Optional<Customer> custOpt = customerRepository.findCustomerByUsername(leader.getUsername());
 			Customer c = custOpt.orElseThrow(() -> new EntityNotFoundException());
 			if (!optTeam.isPresent()) {
-				if(c.getRuolo()==Role.ADMIN) {
-					Team t = optTeam.get();
+				if (c.getRuolo() == Role.ADMIN) {
+					Team t = new Team();
+					t.setNome(team.getNome());
 					t.setLeader(c);
 					repository.save(t);
-				}else {
+					c.setTeam(t);
+					customerRepository.save(c);
+					
+				} else {
 					throw new NotAllowedException();
 				}
 			} else {
