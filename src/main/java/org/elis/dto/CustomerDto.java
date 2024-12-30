@@ -9,8 +9,8 @@ import lombok.Data;
 @Data
 public class CustomerDto {
 	private long id;
-
+	private List<TaskDto> task_create;
 	private String username;
-	@JsonIgnore
-	private List<TaskDto> tasks;
+	private SemplifiedTeamDto team;
+
 }
