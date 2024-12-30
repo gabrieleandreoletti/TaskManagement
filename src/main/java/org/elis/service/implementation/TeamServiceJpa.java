@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.elis.dto.CustomerDto;
+import org.elis.dto.SemplifiedTeamDto;
 import org.elis.dto.TeamDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
@@ -101,6 +102,24 @@ public class TeamServiceJpa implements TeamService {
 			if (!repository.selectTeamByNome(nome).isPresent()) {
 				t.setNome(nome);
 				repository.save(t);
+			} else {
+				throw new EntityIsPresentException();
+			}
+		}
+
+	}
+
+	@Override
+	public void addMember(CustomerDto c, SemplifiedTeamDto t) throws EntityNotFoundException, EntityIsPresentException {
+		if (t.getNome() != null && !t.getNome().isBlank()) {
+			Optional<Team> optTeam = repository.findById(t.getId());
+			Team team = optTeam.orElseThrow(() -> new EntityNotFoundException());
+			if (!c.getTeam().getNome().equals(t.getNome())) {
+				Optional<Customer> cusOpt = customerRepository.findById(c.getId());
+				Customer customer = cusOpt.orElseThrow(() -> new EntityNotFoundException());
+				customer.setTeam(team);
+				repository.save(team);
+				customerRepository.save(customer);
 			} else {
 				throw new EntityIsPresentException();
 			}

@@ -3,6 +3,7 @@ package org.elis.service.definition;
 import java.util.List;
 
 import org.elis.dto.CustomerDto;
+import org.elis.dto.SemplifiedTeamDto;
 import org.elis.dto.TeamDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
@@ -17,4 +18,5 @@ public interface TeamService {
 	List<TeamDto> selectAll() throws EntityNotFoundException;
 	TeamDto selectByName(String nome) throws EntityNotFoundException;
 	void updateNome(TeamDto team , String nome) throws EntityIsPresentException, EntityNotFoundException;
+	void addMember(CustomerDto c,SemplifiedTeamDto t) throws EntityNotFoundException, EntityIsPresentException;
 }

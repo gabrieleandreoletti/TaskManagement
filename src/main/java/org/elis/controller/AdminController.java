@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.elis.dto.CustomerDto;
 import org.elis.dto.RegistrationCustomerDto;
+import org.elis.dto.SemplifiedTeamDto;
 import org.elis.dto.TeamDto;
 import org.elis.exception.CheckFieldException;
 import org.elis.exception.EntityIsPresentException;
@@ -64,16 +65,36 @@ public class AdminController {
 		}
 	}
 
+	@PostMapping("admin/addMember")
+	public ResponseEntity<SemplifiedTeamDto> addMember(UsernamePasswordAuthenticationToken u,
+			@Valid @RequestBody String newMemberUsername) throws  CheckFieldException,
+			EntityIsPresentException, NoUserLoggedException, EntityNotFoundException {
+		String username = (String) u.getPrincipal();
+		CustomerDto cust = customerService.selectByUsername(username);
+		if (cust != null) {
+			CustomerDto member = customerService.selectByUsername(newMemberUsername);
+			if (member.getTeam() == null) {
+				teamService.addMember(member, cust.getTeam());
+				return ResponseEntity.ok().body(cust.getTeam());
+			}else {
+				throw new EntityIsPresentException();
+			}
+
+		} else {
+			throw new NoUserLoggedException();
+		}
+	}
+
 	@DeleteMapping("admin/eliminaTeam")
 	@Operation(summary = "eliminazione di un team", description = "l'admin invia un oggetto dt contentente l'id di un team che dopo i controlli verrà eliminato per sempre")
 	public ResponseEntity<String> eliminaTeam(long id, UsernamePasswordAuthenticationToken u)
 			throws EntityNotFoundException, CheckFieldException, NoUserLoggedException {
 		String username = (String) u.getPrincipal();
 		CustomerDto cust = customerService.selectByUsername(username);
-		if(cust!=null) {
+		if (cust != null) {
 			teamService.delete(id);
-			return ResponseEntity.ok().body("Team con id: " +id + " è stato eliminato");
-		}else {
+			return ResponseEntity.ok().body("Team con id: " + id + " è stato eliminato");
+		} else {
 			throw new NoUserLoggedException();
 
 		}

@@ -11,5 +11,6 @@ public class CustomerDto {
 	private long id;
 	private List<TaskDto> task_create;
 	private String username;
+	private SemplifiedTeamDto team;
 
 }
