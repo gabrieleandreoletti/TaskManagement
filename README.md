@@ -15,7 +15,7 @@
 - **JavaScript, HTML, CSS** – Tecnologie per l'interfaccia utente
 
 ### Prerequisiti
-Assicurati di avere i seguenti strumenti installati sul tuo sistema:
+
 - **JDK 11** o superiore
 - **Maven** (per la gestione delle dipendenze)
 - **MySQL** (o qualsiasi altro database compatibile)
